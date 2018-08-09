@@ -84,7 +84,9 @@ def parse_file(file_name):
             "//meta[@property='og:url']/@content")[0].replace("x//", "x/")
 
         # We add all the fields to the master_list as a tuple.
-        master_list.append((clean_salary, name, location, url))
+        # Very few times the location is None, we skip those ones.
+        if location:
+            master_list.append((clean_salary, name, location, url))
 
 
 def load_comments():
@@ -100,59 +102,73 @@ def load_comments():
     processed_comments = load_log()
 
     for post_id in config.SUBMISSION_IDS:
-        for comment in reddit.submission(id=post_id).comments:
+        submission = reddit.submission(id=post_id)
+
+        # This line guarantees that all comments from a thread are read.
+        submission.comments.replace_more(limit=None)
+
+        for comment in submission.comments.list():
 
             if comment.id not in processed_comments:
 
                 # For a comment to be valid we start by checking that the command !empleos is in the comment body.
-                if "!empleos" in comment.body:
+                if "!empleos" in comment.body.lower():
 
-                    # We split the comment body into a list and remove white space chunks.
-                    parameters_list = comment.body.split(" ")
-                    parameters_list = [x for x in parameters_list if x != ""]
+                    try:
+                        # We split the comment body into a list and remove white space chunks.
+                        parameters_list = comment.body.split(" ")
+                        parameters_list = [
+                            x for x in parameters_list if x != ""]
 
-                    parameters = dict()
+                        parameters = dict()
 
-                    # The parameters list can have up to 5 items, including the command.
-                    # We check for each escneario and clean the data accordingly.
-                    if len(parameters_list) == 2:
-                        parameters["location"] = clean_word(
-                            str(parameters_list[1])).lower()
+                        # The parameters list can have up to 5 items, including the command.
+                        # We check for each escneario and clean the data accordingly.
+                        if len(parameters_list) == 2:
+                            parameters["location"] = clean_word(
+                                str(parameters_list[1])).lower()
 
-                    elif len(parameters_list) == 3:
-                        parameters["location"] = clean_word(
-                            str(parameters_list[1])).lower()
-                        parameters["minimum_salary"] = int(parameters_list[2])
+                        elif len(parameters_list) == 3:
+                            parameters["location"] = clean_word(
+                                str(parameters_list[1])).lower()
+                            parameters["minimum_salary"] = int(
+                                parameters_list[2])
 
-                    elif len(parameters_list) == 4:
-                        parameters["location"] = clean_word(
-                            str(parameters_list[1])).lower()
-                        parameters["minimum_salary"] = int(parameters_list[2])
+                        elif len(parameters_list) == 4:
+                            parameters["location"] = clean_word(
+                                str(parameters_list[1])).lower()
+                            parameters["minimum_salary"] = int(
+                                parameters_list[2])
 
-                        try:
+                            try:
+                                parameters["maximum_salary"] = int(
+                                    parameters_list[3])
+                            except:
+                                parameters["tag"] = clean_word(
+                                    str(parameters_list[3])).lower()
+
+                        elif len(parameters_list) == 5:
+                            parameters["location"] = clean_word(
+                                str(parameters_list[1])).lower()
+                            parameters["minimum_salary"] = int(
+                                parameters_list[2])
                             parameters["maximum_salary"] = int(
                                 parameters_list[3])
-                        except:
                             parameters["tag"] = clean_word(
-                                str(parameters_list[3])).lower()
+                                str(parameters_list[4])).lower()
 
-                    elif len(parameters_list) == 5:
-                        parameters["location"] = clean_word(
-                            str(parameters_list[1])).lower()
-                        parameters["minimum_salary"] = int(parameters_list[2])
-                        parameters["maximum_salary"] = int(parameters_list[3])
-                        parameters["tag"] = clean_word(
-                            str(parameters_list[4])).lower()
+                        print(parameters)
+                        message, job_counter = filter_posts(parameters)
 
-                    message, job_counter = filter_posts(parameters)
-
-                    # If there were no jobs we reply with an error message.
-                    if job_counter == 0:
-                        comment.reply(NO_JOBS_MESSAGE)
-                        update_log(comment.id)
-                    else:
-                        comment.reply(message)
-                        update_log(comment.id)
+                        # If there were no jobs we reply with an error message.
+                        if job_counter == 0:
+                            comment.reply(NO_JOBS_MESSAGE)
+                            update_log(comment.id)
+                        else:
+                            comment.reply(message)
+                            update_log(comment.id)
+                    except:
+                        pass
 
 
 def filter_posts(parameters):
@@ -231,9 +247,9 @@ def filter_posts(parameters):
     now = datetime.now() - timedelta(hours=DELTA_HOURS)
 
     message += """\n*****\n^Ofertas ^obtenidas ^el: ^{:%d-%m-%Y ^a ^las ^%H:%M:%S} ^|
-        [^Ayuda](https://redd.it/93au4i) ^|
-        [^Contacto](https://www.reddit.com/message/compose/?to=agent_phantom) ^|
-        [^GitHub](https://git.io/fNoyw)""".format(now)
+        ^[Ayuda](https://redd.it/93au4i) ^|
+        ^[Contacto](https://www.reddit.com/message/compose/?to=agent_phantom) ^|
+        ^[GitHub](https://git.io/fNoyw)""".format(now)
 
     return (message, job_counter)
 
