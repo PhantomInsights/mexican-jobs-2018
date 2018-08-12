@@ -24,14 +24,11 @@ NO_JOBS_MESSAGE = "Lo siento. No pude encontrar ofertas con los parámetros espe
 # To avoid hitting the 10,000 charater limit in comments we only return up to 10 jobs.
 MAX_JOBS = 10
 
-DELTA_HOURS = 0  # 0 for local time, -5 for Mexico Central Time.
-JOBS_MAX_AGE = 86400 * 3  # Seconds in a day multiplied for the number of days.
-
 
 def load_files():
     """Reads the log file and discards the files that are older than the JOB_MAX_AGE."""
 
-    now = datetime.now() - timedelta(hours=DELTA_HOURS)
+    now = datetime.now() - timedelta(hours=config.DELTA_HOURS)
     now_timestamp = now.timestamp()
 
     with open("log.txt", "r", encoding="utf-8") as temp_file:
@@ -46,7 +43,7 @@ def load_files():
                 file_timestamp = datetime.strptime(
                     file_date, "%Y-%m-%d %H:%M:%S.%f").timestamp()
 
-                if (now_timestamp - file_timestamp) <= JOBS_MAX_AGE:
+                if (now_timestamp - file_timestamp) <= config.JOBS_MAX_AGE:
                     files_list.append(file_name)
 
             except:
@@ -67,26 +64,28 @@ def parse_file(file_name):
 
     with open(file_name, "r", encoding="utf-8") as temp_file:
 
-        html = lxml.html.fromstring(temp_file.read())
+        # Very few times the HTML is corrupted and can't fixed.
+        try:
+            html = lxml.html.fromstring(temp_file.read())
 
-        salary = html.xpath(
-            "/html/body/div[1]/div[8]/div[4]/div/div[2]/div/div[1]/div/div/span")[0].text
+            salary = html.xpath(
+                "/html/body/div[1]/div[8]/div[4]/div/div[2]/div/div[1]/div/div/span")[0].text
 
-        clean_salary = int(float(salary.replace("$", "").replace(",", "")))
+            clean_salary = int(float(salary.replace("$", "").replace(",", "")))
 
-        name = html.xpath(
-            "/html/body/div[1]/div[8]/div[1]/div/h3/small")[0].text
+            name = html.xpath(
+                "/html/body/div[1]/div[8]/div[1]/div/h3/small")[0].text
 
-        location = html.xpath(
-            "/html/body/div[1]/div[8]/div[4]/div/div[2]/div/div[2]/div/div/span")[0].text
+            location = html.xpath(
+                "/html/body/div[1]/div[8]/div[4]/div/div[2]/div/div[2]/div/div/span")[0].text
 
-        url = html.xpath(
-            "//meta[@property='og:url']/@content")[0].replace("x//", "x/")
+            url = html.xpath(
+                "//meta[@property='og:url']/@content")[0].replace("x//", "x/")
 
-        # We add all the fields to the master_list as a tuple.
-        # Very few times the location is None, we skip those ones.
-        if location:
             master_list.append((clean_salary, name, location, url))
+
+        except:
+            pass
 
 
 def load_comments():
@@ -115,47 +114,14 @@ def load_comments():
                 if "!empleos" in comment.body.lower():
 
                     try:
-                        # We split the comment body into a list and remove white space chunks.
-                        parameters_list = comment.body.split(" ")
-                        parameters_list = [
-                            x for x in parameters_list if x != ""]
 
-                        parameters = dict()
-
-                        # The parameters list can have up to 5 items, including the command.
-                        # We check for each escneario and clean the data accordingly.
-                        if len(parameters_list) == 2:
+                        if '"' in comment.body:
+                            parameters_list = comment.body.lower().split("!empleos")
+                            parameters = dict()
                             parameters["location"] = clean_word(
-                                str(parameters_list[1])).lower()
-
-                        elif len(parameters_list) == 3:
-                            parameters["location"] = clean_word(
-                                str(parameters_list[1])).lower()
-                            parameters["minimum_salary"] = int(
-                                parameters_list[2])
-
-                        elif len(parameters_list) == 4:
-                            parameters["location"] = clean_word(
-                                str(parameters_list[1])).lower()
-                            parameters["minimum_salary"] = int(
-                                parameters_list[2])
-
-                            try:
-                                parameters["maximum_salary"] = int(
-                                    parameters_list[3])
-                            except:
-                                parameters["tag"] = clean_word(
-                                    str(parameters_list[3])).lower()
-
-                        elif len(parameters_list) == 5:
-                            parameters["location"] = clean_word(
-                                str(parameters_list[1])).lower()
-                            parameters["minimum_salary"] = int(
-                                parameters_list[2])
-                            parameters["maximum_salary"] = int(
-                                parameters_list[3])
-                            parameters["tag"] = clean_word(
-                                str(parameters_list[4])).lower()
+                                parameters_list[1].replace('"', "").strip())
+                        else:
+                            parameters = parse_normal_comment(comment.body)
 
                         print(parameters)
                         message, job_counter = filter_posts(parameters)
@@ -169,6 +135,54 @@ def load_comments():
                             update_log(comment.id)
                     except:
                         pass
+
+
+def parse_normal_comment(comment_body):
+    """Parses a regular comment that may contain all parameters.
+
+    Parameters
+    ----------
+    comment_body : str
+        A string that may contain one or more parameters.
+
+    Returns
+    -------
+    dict
+        The parameters to filter the job listings.
+
+    """
+
+    # We split the comment body into a list and remove white space chunks.
+    parameters_list = comment_body.lower().split(" ")
+    parameters_list = [x for x in parameters_list if x != ""]
+
+    parameters = dict()
+
+    # The parameters list can have up to 5 items, including the command.
+    # We check for each escneario and clean the data accordingly.
+    if len(parameters_list) == 2:
+        parameters["location"] = clean_word(str(parameters_list[1]))
+
+    elif len(parameters_list) == 3:
+        parameters["location"] = clean_word(str(parameters_list[1]))
+        parameters["minimum_salary"] = int(parameters_list[2])
+
+    elif len(parameters_list) == 4:
+        parameters["location"] = clean_word(str(parameters_list[1]))
+        parameters["minimum_salary"] = int(parameters_list[2])
+
+        try:
+            parameters["maximum_salary"] = int(parameters_list[3])
+        except:
+            parameters["tag"] = clean_word(str(parameters_list[3]))
+
+    elif len(parameters_list) == 5:
+        parameters["location"] = clean_word(str(parameters_list[1]))
+        parameters["minimum_salary"] = int(parameters_list[2])
+        parameters["maximum_salary"] = int(parameters_list[3])
+        parameters["tag"] = clean_word(str(parameters_list[4]))
+
+    return parameters
 
 
 def filter_posts(parameters):
@@ -203,7 +217,7 @@ def filter_posts(parameters):
         if job_counter < MAX_JOBS:
 
             # The first check is to know if our location is available in the master_list.
-            if parameters["location"] in clean_word(location.lower()):
+            if parameters["location"] in clean_word(location.lower()) or parameters["location"] in clean_word(name.lower()):
 
                 # We then separate and clean the job name and the company name.
                 offer = name.split("-")[0].title().strip()
@@ -244,7 +258,7 @@ def filter_posts(parameters):
                 job_counter += 1
 
     # We finalize the mssage with the footer.
-    now = datetime.now() - timedelta(hours=DELTA_HOURS)
+    now = datetime.now() - timedelta(hours=config.DELTA_HOURS)
 
     message += """\n*****\n^Ofertas ^obtenidas ^el: ^{:%d-%m-%Y ^a ^las ^%H:%M:%S} ^|
         ^[Ayuda](https://redd.it/93au4i) ^|
