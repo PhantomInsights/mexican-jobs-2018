@@ -14,14 +14,13 @@ import praw
 import config
 
 MIN_SALARY_THRESHOLD = 8000
-DELTA_HOURS = 0  # 0 for local time, 5 for Mexico Central Time.
 JOBS_MAX_AGE = 86400 * 3  # Seconds
 
 
 def load_files():
     """Reads the log file and discards the files that are older than the JOB_MAX_AGE."""
 
-    now = datetime.now() - timedelta(hours=DELTA_HOURS)
+    now = datetime.now() - timedelta(hours=config.DELTA_HOURS)
     now_timestamp = now.timestamp()
 
     with open("log.txt", "r", encoding="utf-8") as temp_file:
@@ -36,7 +35,7 @@ def load_files():
                 file_timestamp = datetime.strptime(
                     file_date, "%Y-%m-%d %H:%M:%S.%f").timestamp()
 
-                if (now_timestamp - file_timestamp) <= JOBS_MAX_AGE:
+                if (now_timestamp - file_timestamp) <= config.JOBS_MAX_AGE:
                     files_list.append(file_name)
 
             except:
@@ -57,23 +56,28 @@ def parse_file(file_name):
 
     with open(file_name, "r", encoding="utf-8") as temp_file:
 
-        html = lxml.html.fromstring(temp_file.read())
+        # Very few times the HTML is corrupted and can't fixed.
+        try:
+            html = lxml.html.fromstring(temp_file.read())
 
-        salary = html.xpath(
-            "/html/body/div[1]/div[8]/div[4]/div/div[2]/div/div[1]/div/div/span")[0].text
+            salary = html.xpath(
+                "/html/body/div[1]/div[8]/div[4]/div/div[2]/div/div[1]/div/div/span")[0].text
 
-        clean_salary = int(float(salary.replace("$", "").replace(",", "")))
+            clean_salary = int(float(salary.replace("$", "").replace(",", "")))
 
-        name = html.xpath(
-            "/html/body/div[1]/div[8]/div[1]/div/h3/small")[0].text
+            name = html.xpath(
+                "/html/body/div[1]/div[8]/div[1]/div/h3/small")[0].text
 
-        location = html.xpath(
-            "/html/body/div[1]/div[8]/div[4]/div/div[2]/div/div[2]/div/div/span")[0].text
+            location = html.xpath(
+                "/html/body/div[1]/div[8]/div[4]/div/div[2]/div/div[2]/div/div/span")[0].text
 
-        url = html.xpath(
-            "//meta[@property='og:url']/@content")[0].replace("x//", "x/")
+            url = html.xpath(
+                "//meta[@property='og:url']/@content")[0].replace("x//", "x/")
 
-        master_list.append((clean_salary, name, location, url))
+            master_list.append((clean_salary, name, location, url))
+
+        except:
+            pass
 
 
 def prepare_post():
@@ -107,12 +111,12 @@ def prepare_post():
                     offer, url, company, salary, location)
 
     # We finalize the mssage with the footer.
-    now = datetime.now() - timedelta(hours=DELTA_HOURS)
+    now = datetime.now() - timedelta(hours=config.DELTA_HOURS)
 
     message += """\n*****\n^Última ^actualización: ^{:%d-%m-%Y ^a ^las ^%H:%M:%S} ^|
-        [^Ayuda](https://redd.it/93au4i) ^|
-        [^Contacto](https://www.reddit.com/message/compose/?to=agent_phantom) ^|
-        [^GitHub](https://git.io/fNoyw)""".format(now)
+        ^[Ayuda](https://redd.it/93au4i) ^|
+        ^[Contacto](https://www.reddit.com/message/compose/?to=agent_phantom) ^|
+        ^[GitHub](https://git.io/fNoyw)""".format(now)
 
     update_post(message)
 
@@ -133,8 +137,9 @@ def update_post(message):
                          user_agent=config.USER_AGENT, username=config.REDDIT_USERNAME,
                          password=config.REDDIT_PASSWORD)
 
-    # We update the Reddit post.
-    reddit.submission(config.POST_ID).edit(message)
+    # We update the Reddit theads.
+    for post_id in config.POST_IDS:
+        reddit.submission(post_id).edit(message)
 
 
 if __name__ == "__main__":
