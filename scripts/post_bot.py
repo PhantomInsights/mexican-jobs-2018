@@ -14,7 +14,6 @@ import praw
 import config
 
 MIN_SALARY_THRESHOLD = 8000
-JOBS_MAX_AGE = 86400 * 3  # Seconds
 
 
 def load_files():
@@ -56,7 +55,7 @@ def parse_file(file_name):
 
     with open(file_name, "r", encoding="utf-8") as temp_file:
 
-        # Very few times the HTML is corrupted and can't fixed.
+        # Very few times the HTML is corrupted and can't be fixed.
         try:
             html = lxml.html.fromstring(temp_file.read())
 
