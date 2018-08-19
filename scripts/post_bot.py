@@ -5,7 +5,7 @@ a digest of the highest paying ones.
 The digest is formatted with Markdown and posted to Reddit.
 """
 
-import threading
+import concurrent.futures
 from datetime import datetime, timedelta
 
 import lxml.html
@@ -145,13 +145,9 @@ if __name__ == "__main__":
 
     # We use multithreading to accelerate the reading of all files.
     master_list = list()
-    threads = list()
 
-    for file in load_files():
-        t = threading.Thread(target=parse_file, args=(file, ))
-        t.start()
-        threads.append(t)
-
-    [t.join() for t in threads]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        for file in load_files():
+            executor.submit(parse_file, file)
 
     prepare_post()
