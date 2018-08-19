@@ -3,7 +3,7 @@ This is a Reddit bot that answers to users who use the !empleos command.
 It keeps track of which comments it has answered.
 """
 
-import threading
+import concurrent.futures
 from datetime import datetime, timedelta
 
 import lxml.html
@@ -111,7 +111,7 @@ def load_comments():
             if comment.id not in processed_comments:
 
                 # For a comment to be valid we start by checking that the command !empleos is in the comment body.
-                if "!empleos" in comment.body.lower():
+                if comment.body.lower().startswith("!empleos"):
 
                     try:
 
@@ -327,14 +327,10 @@ if __name__ == "__main__":
 
     # We use multithreading to accelerate the reading of all files.
     master_list = list()
-    threads = list()
 
-    for file in load_files():
-        t = threading.Thread(target=parse_file, args=(file, ))
-        t.start()
-        threads.append(t)
-
-    [t.join() for t in threads]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        for file in load_files():
+            executor.submit(parse_file, file)
 
     # We sort from highest to lowest salary.
     master_list.sort(reverse=True, key=lambda tup: tup[0])
