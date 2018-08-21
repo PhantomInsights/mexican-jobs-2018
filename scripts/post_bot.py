@@ -26,19 +26,15 @@ def load_files():
 
         files_list = list()
 
-        for item in temp_file.read().split("\n"):
+        for item in temp_file.read().splitlines():
 
-            try:
-                file_name, file_date = item.split(",")
+            file_name, file_date = item.split(",")
 
-                file_timestamp = datetime.strptime(
-                    file_date, "%Y-%m-%d %H:%M:%S.%f").timestamp()
+            file_timestamp = datetime.strptime(
+                file_date, "%Y-%m-%d %H:%M:%S.%f").timestamp()
 
-                if (now_timestamp - file_timestamp) <= config.JOBS_MAX_AGE:
-                    files_list.append(file_name)
-
-            except:
-                pass
+            if (now_timestamp - file_timestamp) <= config.JOBS_MAX_AGE:
+                files_list.append(file_name)
 
         return files_list
 
