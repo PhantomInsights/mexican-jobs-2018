@@ -111,7 +111,7 @@ def load_comments():
             if comment.id not in processed_comments:
 
                 # For a comment to be valid we start by checking that the command !empleos is in the comment body.
-                if comment.body.lower().startswith("!empleos"):
+                if comment.body.lower().strip().startswith("!empleos"):
 
                     try:
 
