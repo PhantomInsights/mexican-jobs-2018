@@ -11,8 +11,10 @@ Name | Brief Description
 `scraper.py` | A web scraper made with `Requests` and `BeautifulSoup` that continously keeps saving new job listings.
 `post_bot.py` | A Reddit bot made with `PRAW` and `lxml` that creates a digest with the highest paying jobs country wide.
 `comments_bot.py` | A Reddit bot made with `PRAW` and `lxml` that creates a customized digest with the parameters given by the user.
+`step2.py` | An utility script that extracts and computes the required data from the job listings files, once computed it saves all the data to a .csv file.
+`step3.py` | A collection of functions to extract insights and generate plots from the dataset, it uses `Matplotlib`, `Pandas`, `Seaborn`, `GeoPandas` and `Numpy`.
 
-All of these scripts were written in Python 3, they were deployed on a VPS and were scheduled with the following crontab.
+All of these scripts were written in Python 3, some were deployed on a VPS and were scheduled with the following crontab.
 
 ```
 */5 * * * * cd /home/scripts/ && python3 scraper.py
@@ -71,4 +73,99 @@ Finally we add the footer to the message and reply to the original comment.
 
 ## Analysis
 
-The analysis, figures and scripts that will be used for it will be available early September.
+A total of 36,795 job offers were collected, analyzed and processed. These offers were posted from all Mexico states and every day of the month. Let's start by observing the website activity.
+
+
+### Monthly Activity
+
+The next figure illustrates the amount of job offers posted by day on the month of August.
+
+![Site activity](figs/line1.png)
+
+In Mexico, the week starts on Mondays. As shown in the figure, Mondays and Tuesdays are the days with the most activity and the weekends have the lowest.
+
+In the next figure we can observe the distribution of job offers by state.
+
+![States by numbe of job offers](figs/states_counts.png)
+
+Ciudad de México had the largest representation, more than double of the next one, this can be explained by it being the capital of the country, having a high population density and being the biggest commerce hub. It is very common for people from nearby states to work there.
+
+Jalisco, Mexico State, Coahuila and Queretaro are next on the list, they are known for various industries, including clothing, cars and aerospace manufacturing.
+
+### Monthly Salaries
+
+At the time of this writting, the minimum monthly salary was 2,686 MXN which equals to 142.65 USD.
+
+| Key | Amount in MXN | 
+| --- |:------|
+| Mean | 6816
+| Median | 6000
+| Std | 4638
+| Min | 2650
+| Max | 164949
+| 25% | 4500
+| 50% | 6000
+| 75% | 8000
+
+It is interesting that the mean doesn't differ too much from the median salary. The outliers were not enough to considerably skew the mean.
+
+In the following figure we can observe the distribution of salaries. It only took into account salaries between the minimum wage and 20,000 MXN which represents the 99% of all salaries.
+
+![Salary distribution](figs/hist1.png)
+
+
+The most common salaries were $6000 (10.46%), $5000 (7.68%),
+4000 (6.91%), $8000 (6.18%), $7000 (5.11%) and $10000 (4.1%).
+
+| Percent | Salary Range in MXN | 
+| ---:|:------|
+| 18.7% | < 4000.00
+| 40.5% | 4001.00 to 6000.00
+| 21.7% | 6001.00 to 8000.00
+| 9.1% | 8001.00 to 10,000.00
+| 7.2% | 10,001.00 to 15,000.00
+| 2.9% | > 15,000.00
+
+It is often put on debate how many oeople actually earn the minimum wage. These job offers tells us that at least 81.3% of employers are willing to pay 4000.00 MXN or more.
+
+A heat map was plotted to showcase the median salary by state
+
+![Median Salary by State](figs/map1.png)
+
+The median salary gets higher on northern states, particularly on those that are close to the U.S border, it is also higher on the center of the country, where Ciudad de Mexico, Mexico State and Puebla are located.
+
+The lowest median salaries are located in the south of the country. Campeche scored the lowest in both median salary and number of job offers which may have skewed the results on this particular state.
+
+It is important to note that the cost of living is higher on northern and centric states and gets lower in the southern states. Most of the southern states economy is based on tourism, retail and agriculture compared to manufacturing on the northern states.
+
+### Labour Hours and Days
+
+The job listings provided the start and end hours for each job offer. In the next figure we can observe how the labor hours are distributed.
+
+![Hourly Distribution](figs/hist2.png)
+
+The most common labour hours were 10 (27.8%), 9 (24.3%), 8 (20.7%), 11 (6.3%) and 12 (6%) which represent 85.1% of the total distribution.
+
+![Days Distribution](figs/hist3.png)
+
+The most common labour days were 6 (53.4%), 5 (27.2%) and 7 (17.8%) which represent 98.4% of the total ibution.
+
+Both histograms tells us that these job offers are requiring that employees work the most hours and days. But we need to know if the remuneration is proportial to the time worked.
+
+![Salary vs Hours](figs/scatter1.png)
+
+Jobs between 8 and 12 hours have the more ocurrences of higher salary. The jobs between 21 and 24 hours also have significant higher saleries, one explanation would be that their salaries are paid hourly instead of daily.
+
+### Conclusion
+
+What motivated me to start this project was to know what are the most common salaries In Mexico, it is often discussed how much people earn in their professions.
+
+But we mostly hear from people that earn way above the median and from people that earn the lowest which causes bias and misinformation.
+
+The website empleos.gob.mx doesn't offer the best paying jobs but the amount of data collected was good enough to get a general idea of the current salaries.
+
+It would be interesting to run this project yearly to also know if the salaries catch up with inflation.
+
+Feel free to make your own plots and insights from the dataset, it is located in the [data](./data) folder in .csv format.
+
+Also feel free to suggest edits or enhancements.
