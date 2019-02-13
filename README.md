@@ -2,7 +2,7 @@
 
 This project contains several scripts used for the analysis of job listings posted in the official Mexican Job Board (https://www.empleos.gob.mx).
 
-A secondary use for this project were the creation of 2 Reddit bots that help users to quickly filter job listings with their desired parameters, including salary range, location and a keyword.
+A secondary use for this project was the creation of 2 Reddit bots that help users to quickly filter job listings with their desired parameters, including salary range, location and a keyword.
 
 ## Scripts
 
@@ -12,7 +12,7 @@ Name | Brief Description
 `post_bot.py` | A Reddit bot made with `PRAW` and `lxml` that creates a digest with the highest paying jobs country wide.
 `comments_bot.py` | A Reddit bot made with `PRAW` and `lxml` that creates a customized digest with the parameters given by the user.
 `step2.py` | An utility script that extracts and computes the required data from the job listings files, once computed it saves all the data to a .csv file.
-`step3.py` | A collection of functions to extract insights and generate plots from the dataset, it uses `Matplotlib`, `Pandas`, `Seaborn`, `GeoPandas` and `Numpy`.
+`step3.py` | A collection of functions to extract insights and generate plots from the dataset, it uses `Matplotlib`, `Pandas`, `Seaborn`, `GeoPandas` and `NumPy`.
 
 All of these scripts were written in Python 3, some were deployed on a VPS and were scheduled with the following crontab.
 
@@ -24,7 +24,7 @@ All of these scripts were written in Python 3, some were deployed on a VPS and w
 
 ### Web Scraper
 
-Creating the web scraper required to study the structure of the website. Searching for job listings can be achieved only with `GET` requests. Not providing any keyword returns all the available jobs for the desired state.
+Creating the web scraper required to study the structure of the website. Searching for job listings can be achieved with only `GET` requests. Not providing any keyword returns all the available jobs for the desired state.
 
 All states urls were hardcoded and added to a list. The script iterates over this list and requests the contents of each state.
 
@@ -82,7 +82,7 @@ The next figure illustrates the amount of job offers posted by day on the month 
 
 ![Site activity](figs/line1.png)
 
-In Mexico, the week starts on Mondays. As shown in the figure, Mondays and Tuesdays are the days with the most activity and the weekends have the lowest.
+In Mexico, the week starts on Monday. As shown in the figure, Mondays and Tuesdays are the days with the most activity and the weekends have the lowest.
 
 In the next figure we can observe the distribution of job offers by state.
 
@@ -98,35 +98,34 @@ At the time of this writting, the minimum monthly salary was 2,686 MXN which equ
 
 | Key | Amount in MXN | 
 | --- |:------|
-| Mean | 6816
-| Median | 6000
-| Std | 4638
-| Min | 2650
-| Max | 164949
-| 25% | 4500
-| 50% | 6000
-| 75% | 8000
+| Mean | 6,816
+| Median | 6,000
+| Std | 4,638
+| Min | 2,650
+| Max | 164,949
+| 25% | 4,500
+| 50% | 6,000
+| 75% | 8,000
 
 It is interesting that the mean doesn't differ too much from the median salary. The outliers were not enough to considerably skew the mean.
 
-In the following figure we can observe the distribution of salaries. It only took into account salaries between the minimum wage and 20,000 MXN which represents the 99% of all salaries.
+In the following figure we can observe the distribution of salaries. I only took into account salaries between the minimum wage and 20,000 MXN which represents the 99% of all salaries.
 
 ![Salary distribution](figs/hist1.png)
 
 
-The most common salaries were $6000 (10.46%), $5000 (7.68%),
-4000 (6.91%), $8000 (6.18%), $7000 (5.11%) and $10000 (4.1%).
+The most common salaries were 6,000 (10.46%), 5,000 (7.68%), 4,000 (6.91%), 8,000 (6.18%), 7,000 (5.11%) and 10,000 (4.1%).
 
 | Percent | Salary Range in MXN | 
 | ---:|:------|
-| 18.7% | < 4000.00
-| 40.5% | 4001.00 to 6000.00
-| 21.7% | 6001.00 to 8000.00
-| 9.1% | 8001.00 to 10,000.00
-| 7.2% | 10,001.00 to 15,000.00
-| 2.9% | > 15,000.00
+| 18.7% | < 4,000
+| 40.5% | 4,001 to 6,000
+| 21.7% | 6,001 to 8,000
+| 9.1% | 8001 to 10,000
+| 7.2% | 10,001 to 15,000
+| 2.9% | > 15,000
 
-It is often put on debate how many oeople actually earn the minimum wage. These job offers tells us that at least 81.3% of employers are willing to pay 4000.00 MXN or more.
+It is often put on debate how many oeople actually earn the minimum wage. These job offers tells us that at least 81.3% of employers are willing to pay 4,000 MXN or more.
 
 A heat map was plotted to showcase the median salary by state
 
@@ -148,7 +147,7 @@ The most common labour hours were 10 (27.8%), 9 (24.3%), 8 (20.7%), 11 (6.3%) an
 
 ![Days Distribution](figs/hist3.png)
 
-The most common labour days were 6 (53.4%), 5 (27.2%) and 7 (17.8%) which represent 98.4% of the total ibution.
+The most common labour days were 6 (53.4%), 5 (27.2%) and 7 (17.8%) which represent 98.4% of the total distribution.
 
 Both histograms tells us that these job offers are requiring that employees work the most hours and days. But we need to know if the remuneration is proportial to the time worked.
 
