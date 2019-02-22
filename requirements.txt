@@ -1,0 +1,9 @@
+bs4
+geopandas
+lxml
+matplotlib
+numpy
+pandas
+praw
+requests
+seaborn
