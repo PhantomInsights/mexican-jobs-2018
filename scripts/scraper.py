@@ -1,6 +1,6 @@
 """
 This module connnects to https://empleos.gob.mx and checks each state in Mexico for new listings.
-Ne job listings are downloaded into their respective state folder.
+The job listings are downloaded into their respective state folder.
 """
 
 import os
