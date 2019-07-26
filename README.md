@@ -18,7 +18,7 @@ All of these scripts were written in Python 3, some were deployed on a VPS and w
 
 ```
 */5 * * * * cd /home/scripts/ && python3 scraper.py
-15,30,45,0 cd /home/scripts/ && python3 post_bot.py
+15,30,45,0 * * * * cd /home/scripts/ && python3 post_bot.py
 * * * * * cd /home/scripts/ && python3 comments_bot.py
 ```
 
