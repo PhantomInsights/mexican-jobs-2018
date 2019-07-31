@@ -1,4 +1,4 @@
-# Mexican Jobs
+# Mexican Jobs 2018
 
 This project contains several scripts used for the analysis of job listings posted in the official Mexican Job Board (https://www.empleos.gob.mx).
 
