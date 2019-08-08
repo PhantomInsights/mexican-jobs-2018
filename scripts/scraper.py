@@ -1,5 +1,5 @@
 """
-This module connnects to https://empleos.gob.mx and checks each state in Mexico for new listings.
+This script connects to https://empleos.gob.mx and checks each state in Mexico for new listings.
 The job listings are downloaded into their respective state folder.
 """
 
