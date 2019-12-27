@@ -17,9 +17,9 @@ Name | Brief Description
 All of these scripts were written in Python 3, some were deployed on a VPS and were scheduled with the following crontab.
 
 ```
-*/5 * * * * cd /home/scripts/ && python3 scraper.py
-15,30,45,0 * * * * cd /home/scripts/ && python3 post_bot.py
-* * * * * cd /home/scripts/ && python3 comments_bot.py
+*/5 * * * * cd /home/scripts/ & python3 scraper.py
+*/15 * * * * cd /home/scripts/ & python3 post_bot.py
+* * * * * cd /home/scripts/ & python3 comments_bot.py
 ```
 
 ### Web Scraper
